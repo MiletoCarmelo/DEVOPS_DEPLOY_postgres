@@ -1,0 +1,12 @@
+# values.yaml
+postgresql:
+  nameOverride: "postgres"
+  image:
+    repository: postgres
+    containerPort: 5432
+  
+  replicaCount: 1
+  
+  service:
+    type: NodePort
+    port: 5432
