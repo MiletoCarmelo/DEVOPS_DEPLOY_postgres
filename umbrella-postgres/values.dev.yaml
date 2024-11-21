@@ -8,10 +8,8 @@ postgresql:
   secretRef: postgres-secrets
 
   replicaCount: 1
-  
+
   # Dans votre values.yaml ou via un fichier service.yaml
   service:
     type: LoadBalancer
     port: 5432
-    annotations:
-      metallb.universe.tf/address-pool: tailscale
