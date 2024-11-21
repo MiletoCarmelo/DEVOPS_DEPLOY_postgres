@@ -1,10 +1,12 @@
 # values.yaml
 postgresql:
-  nameOverride: "postgres"
+  nameOverride: postgres
   image:
     repository: postgres
     containerPort: 5432
   
+  secretRef: postgres-secrets
+
   replicaCount: 1
   
   service:
