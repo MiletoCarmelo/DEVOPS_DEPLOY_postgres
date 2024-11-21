@@ -9,6 +9,9 @@ postgresql:
 
   replicaCount: 1
 
+  tailscale: 
+    status: true 
+    
   # Dans votre values.yaml ou via un fichier service.yaml
   service:
     type: LoadBalancer
