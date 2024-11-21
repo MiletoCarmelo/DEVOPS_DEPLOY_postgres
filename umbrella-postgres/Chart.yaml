@@ -24,7 +24,7 @@ version: 0.1.0
 appVersion: "1.1.0"
 
 dependencies:
-  - name: generic-postgres-backend
+  - name: generic-postgres
     version: 0.1.0
     repository: https://raw.githubusercontent.com/MiletoCarmelo/DEVOPS_HELM_generic_postgres/github-pages
     alias: postgresql
