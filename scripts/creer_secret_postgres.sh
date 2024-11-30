@@ -1,66 +1,74 @@
 #!/bin/bash
 
-# secrets from .env
-POSTGRES_DB=$(grep POSTGRES_DB .env | cut -d '=' -f2)
-POSTGRES_USER=$(grep POSTGRES_USER .env | cut -d '=' -f2)
-POSTGRES_PASSWORD=$(grep POSTGRES_PASSWORD .env | cut -d '=' -f2)
-NAMESPACE=$(grep NAMESPACE .env | cut -d '=' -f2)
-NAME_SCRET=$(grep NAME_SCRET .env | cut -d '=' -f2)
+# Icônes
+CHECK="✅"
+ERROR="❌"
+LOADING="🔄"
+INFO="ℹ️ "
+WARNING="⚠️ "
+LOCK="🔒"
+KEY="🔑"
+DATABASE="🗄️ "
+USER="👤"
+ROCKET="🚀"
+MAG="🔍"
 
-# Afficher les valeurs des variables (sans le mot de passe)
-echo "Variables d'environnement :"
-echo "NAMESPACE=${NAMESPACE}"
-echo "NAME_SCRET=${NAME_SCRET}"
-echo "POSTGRES_DB=${POSTGRES_DB}"
-echo "POSTGRES_USER=${POSTGRES_USER}"
-echo "POSTGRES_PASSWORD=***"
+# Charger les variables depuis .env
+DAGSTER_DB=$(grep DAGSTER_DB .env | cut -d '=' -f2)
+DAGSTER_USER=$(grep DAGSTER_USER .env | cut -d '=' -f2)
+DAGSTER_PASSWORD=$(grep DAGSTER_PASSWORD .env | cut -d '=' -f2)
+DAGSTER_NAMESPACE=$(grep NAMESPACE .env | cut -d '=' -f2)
+NAME_SECRET="dagster-postgresql-secret"
+
+# Afficher les valeurs des variables
+echo -e "${INFO} Variables d'environnement :"
+echo -e "${DATABASE} NAMESPACE    : ${DAGSTER_NAMESPACE}"
+echo -e "${KEY} NAME_SECRET  : ${NAME_SECRET}"
+echo -e "${DATABASE} DAGSTER_DB   : ${DAGSTER_DB}"
+echo -e "${USER} DAGSTER_USER : ${DAGSTER_USER}"
+echo -e "${LOCK} PASSWORD     : ***"
 
 # Vérifier que les variables requises sont définies
-if [ -z "${POSTGRES_DB}" ] || [ -z "${POSTGRES_USER}" ] || [ -z "${POSTGRES_PASSWORD}" ]; then
-    echo "❌ Erreur: Une ou plusieurs variables requises ne sont pas définies"
-    echo "POSTGRES_DB=${POSTGRES_DB}"
-    echo "POSTGRES_USER=${POSTGRES_USER}"
-    echo "POSTGRES_PASSWORD=***" # On n'affiche pas le mot de passe pour la sécurité
+if [ -z "${DAGSTER_DB}" ] || [ -z "${DAGSTER_USER}" ] || [ -z "${DAGSTER_PASSWORD}" ]; then
+    echo -e "${ERROR} Erreur: Une ou plusieurs variables requises ne sont pas définies"
+    echo -e "DAGSTER_DB=${DAGSTER_DB}"
+    echo -e "DAGSTER_USER=${DAGSTER_USER}"
+    echo -e "DAGSTER_PASSWORD=***"
     exit 1
 fi
 
 # Vérifier si le namespace existe
-if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
-    echo "🔄 Création du namespace ${NAMESPACE}..."
-    kubectl create namespace ${NAMESPACE}
+if ! kubectl get namespace ${DAGSTER_NAMESPACE} >/dev/null 2>&1; then
+    echo -e "${LOADING} Création du namespace ${DAGSTER_NAMESPACE}..."
+    kubectl create namespace ${DAGSTER_NAMESPACE}
 else
-    echo "✅ Le namespace ${NAMESPACE} existe déjà"
+    echo -e "${CHECK} Le namespace ${DAGSTER_NAMESPACE} existe déjà"
 fi
 
 # Créer le secret en YAML
+echo -e "${LOADING} Création du secret..."
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  name: ${NAME_SCRET}
-  namespace: ${NAMESPACE}
+  name: ${NAME_SECRET}
+  namespace: ${DAGSTER_NAMESPACE}
 type: Opaque
 stringData:
-  POSTGRES_DB: "${POSTGRES_DB}"
-  POSTGRES_USER: "${POSTGRES_USER}"
-  POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+  POSTGRES_DB: "${DAGSTER_DB}"
+  POSTGRES_USER: "${DAGSTER_USER}"
+  POSTGRES_PASSWORD: "${DAGSTER_PASSWORD}"
 EOF
+echo -e "${CHECK} Secret ${NAME_SECRET} créé/mis à jour avec succès"
 
-echo "✅ Secret ${NAME_SCRET} créé/mis à jour avec succès"
+# Vérification du contenu
+echo -e "\n${MAG} Vérification du secret..."
+echo -e "${INFO} Secret YAML complet :"
+kubectl get secret ${NAME_SECRET} -n ${DAGSTER_NAMESPACE} -o yaml
 
-# verification contenus :
-echo "🔄 Vérification du secret..."
-echo "Secret YAML complet :"
-kubectl get secret ${NAME_SCRET} -n ${NAMESPACE} -o yaml
+echo -e "\n${INFO} Contenu décodé du secret :"
+echo -e "${DATABASE} POSTGRES_DB: $(kubectl get secret ${NAME_SECRET} -n ${DAGSTER_NAMESPACE} -o jsonpath='{.data.POSTGRES_DB}' | base64 --decode)"
+echo -e "${USER} POSTGRES_USER: $(kubectl get secret ${NAME_SECRET} -n ${DAGSTER_NAMESPACE} -o jsonpath='{.data.POSTGRES_USER}' | base64 --decode)"
+echo -e "${LOCK} POSTGRES_PASSWORD: $(kubectl get secret ${NAME_SECRET} -n ${DAGSTER_NAMESPACE} -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 --decode)"
 
-echo -n "POSTGRES_DB: "
-kubectl get secret ${NAME_SCRET} -n ${NAMESPACE} -o jsonpath='{.data.POSTGRES_DB}' | base64 --decode
-echo
-
-echo -n "POSTGRES_USER: "
-kubectl get secret ${NAME_SCRET} -n ${NAMESPACE} -o jsonpath='{.data.POSTGRES_USER}' | base64 --decode
-echo
-
-echo -n "POSTGRES_PASSWORD: "
-kubectl get secret ${NAME_SCRET} -n ${NAMESPACE} -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 --decode
-echo
+echo -e "\n${ROCKET} ${CHECK} Secret créé et vérifié avec succès !"
