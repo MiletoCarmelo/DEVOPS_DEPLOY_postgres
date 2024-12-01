@@ -16,3 +16,25 @@ postgresql:
   service:
     type: LoadBalancer
     port: 5432
+
+  # Variables d'environnement
+  env:
+    - name: POSTGRES_USER
+      valueFrom:
+        secretKeyRef:
+          name: dagster-postgresql-secret
+          key: POSTGRES_USER
+          optional: false
+    - name: POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: dagster-postgresql-secret
+          key: POSTGRES_PASSWORD
+          optional: false
+    - name: POSTGRES_DB
+      valueFrom:
+        secretKeyRef:
+          name: dagster-postgresql-secret
+          key: POSTGRES_DB
+          optional: false
+        
