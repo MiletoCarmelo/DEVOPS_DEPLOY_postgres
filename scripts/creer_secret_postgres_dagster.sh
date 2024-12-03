@@ -18,15 +18,21 @@ DAGSTER_DB=$(grep DAGSTER_DB .env | cut -d '=' -f2)
 DAGSTER_USER=$(grep DAGSTER_USER .env | cut -d '=' -f2)
 DAGSTER_PASSWORD=$(grep DAGSTER_PASSWORD .env | cut -d '=' -f2)
 DAGSTER_NAMESPACE=$(grep NAMESPACE .env | cut -d '=' -f2)
-NAME_SECRET="dagster-postgresql-secret"
+NAME_SECRET=$(grep DAGSTER_NAME_SECRET .env | cut -d '=' -f2)
 
 # Afficher les valeurs des variables
 echo -e "${INFO} Variables d'environnement :"
+echo -e "  "
 echo -e "${DATABASE} NAMESPACE    : ${DAGSTER_NAMESPACE}"
+echo -e "  "
 echo -e "${KEY} NAME_SECRET  : ${NAME_SECRET}"
+echo -e "  "
 echo -e "${DATABASE} DAGSTER_DB   : ${DAGSTER_DB}"
+echo -e "  "
 echo -e "${USER} DAGSTER_USER : ${DAGSTER_USER}"
+echo -e "  "
 echo -e "${LOCK} PASSWORD     : ***"
+echo -e "  "
 
 # Vérifier que les variables requises sont définies
 if [ -z "${DAGSTER_DB}" ] || [ -z "${DAGSTER_USER}" ] || [ -z "${DAGSTER_PASSWORD}" ]; then
